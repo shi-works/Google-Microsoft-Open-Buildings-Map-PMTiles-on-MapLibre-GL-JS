@@ -1,375 +1,183 @@
 <html>
 
 <head>
-    <title>Israel&Palestine Population Map </title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@3.4.0/dist/maplibre-gl.css' />
-    <script src='https://unpkg.com/maplibre-gl@3.4.0/dist/maplibre-gl.js'></script>
-    <script src="https://unpkg.com/pmtiles@2.10.0/dist/index.js"></script>
-    <style>
-        body {
-            margin: 0;
-        }
+  <title>Google & Microsoft Open Buildings（PMTiles）</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel='stylesheet' href='https://unpkg.com/maplibre-gl@3.4.0/dist/maplibre-gl.css' />
+  <script src='https://unpkg.com/maplibre-gl@3.4.0/dist/maplibre-gl.js'></script>
+  <script src="https://unpkg.com/pmtiles@2.10.0/dist/index.js"></script>
+  <style>
+    body {
+      margin: 0;
+    }
 
-        #map {
-            height: 100%;
-            width: 100%;
-        }
+    #map {
+      height: 100%;
+      width: 100%;
+    }
 
-        .map-overlay {
-            font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-            position: absolute;
-            width: 230px;
-            bottom: 20px;
-            left: 0px;
-            padding: 10px;
-        }
+    .map-overlay {
+      font: bold 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      position: absolute;
+      width: 220px;
+      bottom: 20px;
+      left: 0px;
+      padding: 10px;
+    }
 
-        .map-overlay .map-overlay-inner {
-            background-color: #fff;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            border-radius: 3px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
+    .map-overlay .map-overlay-inner {
+      background-color: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
 
-        .map-overlay label {
-            display: block;
-            margin: 0 0 0px;
-            font-size: 12px;
-            top: 100px;
-            left: 10px;
-            display: block;
-            margin-bottom: 5px;
-        }
+    .map-overlay label {
+      display: block;
+      margin: 0 0 0px;
+      font-size: 12px;
+      top: 100px;
+      left: 10px;
+      display: block;
+      margin-bottom: 5px;
+    }
 
-        .map-overlay input {
-            background-color: transparent;
-            display: inline-block;
-            width: 100%;
-            position: relative;
-            margin: 0;
-            cursor: ew-resize;
-        }
-
-        .legend {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 3px;
-            bottom: 40px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
-            font: 12px/14px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-            padding: 10px;
-            position: absolute;
-            right: 10px;
-            z-index: 1;
-            line-height: 20px;
-            height: auto;
-        }
-
-        .legend h4 {
-            margin: 0 0 10px;
-        }
-
-        .legend div span {
-            border-radius: 50%;
-            display: inline-block;
-            height: 15px;
-            margin-right: 10px;
-            width: 15px;
-            color: orangered
-        }
-
-        .square {
-            width: 10px;
-            height: 10px;
-        }
-    </style>
+    .map-overlay input {
+      background-color: transparent;
+      display: inline-block;
+      width: 100%;
+      position: relative;
+      margin: 0;
+      cursor: ew-resize;
+    }
+  </style>
 </head>
 
 <body>
-    <div id="map"></div>
-    <div class="map-overlay top">
-        <div class="map-overlay-inner">
-            <label>人口メッシュ 不透明度: <span id="mesh-slider-opacity-value">100%</span></label>
-            <input id="mesh-slider-opacity" type="range" min="0" max="100" step="1" value="100">
-            <label>人口メッシュ 高さ倍率: <span id="mag-slider-opacity-value">15倍</span></label>
-            <input id="mag-slider-opacity" type="range" min="0" max="50" step="5" value="15">
-        </div>
+  <div id="map"></div>
+  <div class="map-overlay top">
+    <div class="map-overlay-inner">
+      <label>Buildings Opaity: <span id="model-slider-opacity-value">100%</span></label>
+      <input id="model-slider-opacity" type="range" min="0" max="100" step="1" value="100">
     </div>
-    <div id="legend-pop" style="display:block;" class='legend'>
-        <h4>人口(100mﾒｯｼｭ)</h4>
-        <div class="square" style='background-color: #0000FF; display: inline-block;'>
-        </div><span style="display: inline-block; margin-left: 5px;">10人未満</span><br>
-        <div class="square" style='background-color: #00FFFF; display: inline-block;'>
-        </div><span style="display: inline-block; margin-left: 5px;">10人以上</span><br>
-        <div class="square" style='background-color: #00FF00; display: inline-block;'>
-        </div><span style="display: inline-block; margin-left: 5px;">25人以上</span><br>
-        <div class="square" style='background-color: #FFFF00; display: inline-block;'>
-        </div><span style="display: inline-block; margin-left: 5px;">50人以上</span><br>
-        <div class="square" style='background-color: #FF7F00; display: inline-block;'>
-        </div><span style="display: inline-block; margin-left: 5px;">100人以上</span><br>
-        <div class="square" style='background-color: #FF0000; display: inline-block;'>
-        </div><span style="display: inline-block; margin-left: 5px;">200人以上</span><br>
-        <div class="square" style='background-color: #650065; display: inline-block;'>
-        </div><span style="display: inline-block; margin-left: 5px;">300人以上</span><br>
-    </div>
+  </div>
+  <script type="text/javascript">
+    // protocolの設定
+    let protocol = new pmtiles.Protocol();
+    maplibregl.addProtocol("pmtiles", protocol.tile);
 
-    <script type="text/javascript">
-        // protocolの設定
-        let protocol = new pmtiles.Protocol();
-        maplibregl.addProtocol("pmtiles", protocol.tile);
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://tile2.openstreetmap.jp/styles/osm-bright/style.json',
+      zoom: 15.59,
+      minZoom: 1,
+      maxZoom: 23,
+      center: [35.227166, 31.778562],
+      pitch: 0,
+      bearing: 0,
+      hash: true,
+      attributionControl: false,
+    })
 
-        // マップの初期化
-        const map = new maplibregl.Map({
-            container: 'map',
-            style: 'https://tile2.openstreetmap.jp/styles/osm-bright/style.json',
-            center: [34.5118, 31.432],
-            zoom: 10.37,
-            minZoom: 1,
-            maxZoom: 23,
-            pitch: 60,
-            bearing: 24.8,
-            hash: true,
-            attributionControl: false
-        });
+    // ズーム・回転
+    map.addControl(new maplibregl.NavigationControl());
 
-        // ズーム・回転
-        map.addControl(new maplibregl.NavigationControl());
+    // フルスクリーンモードのオンオフ
+    map.addControl(new maplibregl.FullscreenControl());
 
-        // フルスクリーンモードのオンオフ
-        map.addControl(new maplibregl.FullscreenControl());
+    // 現在位置表示
+    map.addControl(new maplibregl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: false
+      },
+      fitBoundsOptions: { maxZoom: 18 },
+      trackUserLocation: true,
+      showUserLocation: true
+    }));
 
-        // 現在位置表示
-        map.addControl(new maplibregl.GeolocateControl({
-            positionOptions: {
-                enableHighAccuracy: false
-            },
-            fitBoundsOptions: { maxZoom: 18 },
-            trackUserLocation: true,
-            showUserLocation: true
-        }));
+    // スケール表示
+    map.addControl(new maplibregl.ScaleControl({
+      maxWidth: 200,
+      unit: 'metric'
+    }));
 
-        // スケール表示
-        map.addControl(new maplibregl.ScaleControl({
-            maxWidth: 200,
-            unit: 'metric'
-        }));
+    // Attributionを折りたたみ表示
+    map.addControl(new maplibregl.AttributionControl({
+      compact: true,
+      // カスタムAttributionを表示
+      customAttribution: '（<a href="https://twitter.com/shi__works" target="_blank">Twitter</a> | <a href="https://github.com/shi-works/Google-Microsoft-Open-Buildings-Map-PMTiles-on-MapLibre-GL-JS" target="_blank">Github</a>） '
+    }));
 
-        // Attributionを折りたたみ表示
-        map.addControl(new maplibregl.AttributionControl({
-            compact: true,
-            customAttribution: '（<a href="https://twitter.com/shi__works" target="_blank">Twitter</a> | <a href="https://github.com/shi-works/Israel-Palestine-Population-Map-on-MapLibre-GL-JS" target="_blank">Github</a>）'
-        }));
+    map.on('load', () => {
+      // google-microsoft-open-buildings-source
+      map.addSource("pmtiles-building", {
+        type: "vector",
+        url: "pmtiles://" + "https://data.source.coop/vida/google-microsoft-open-buildings/pmtiles/go_ms_building_footprints.pmtiles",
+        attribution: '<a href="https://beta.source.coop/repositories/vida/google-microsoft-open-buildings/description">Google-Microsoft Open Buildings - combined by VIDA</a>',
+        generateId: true
+      });
 
-        map.on('load', () => {
-            /*
-            // イスラエル人口メッシュソースを追加
-            map.addSource("israel-pop", {
-                type: "vector",
-                url: "pmtiles://" + "https://xs489works.xsrv.jp/pmtiles-data/WorldPop/isr_ppp_2020_UNadj_constrained.pmtiles",
-                attribution: '<a href="https://www.worldpop.org/">WorldPop(2020)</a>'
-            });
+      // google-microsoft-open-buildings-layer
+      map.addLayer({
+        'id': 'pmtiles-building',
+        'type': 'fill-extrusion',
+        'source': 'pmtiles-building',
+        'source-layer': 'building_footprints',
+        "minzoom": 10,
+        "maxzoom": 23,
+        'paint': {
+          "fill-extrusion-color": 'rgb(0, 127, 255)',
+          "fill-extrusion-opacity": 1.0,
+          "fill-extrusion-height": ["get", "height"]
+        }
+      });
 
-            // イスラエル人口メッシュレイヤの追加
-            map.addLayer({
-                'id': 'israel-pop-polygon',
-                'type': 'fill-extrusion',
-                'source': 'israel-pop',
-                'source-layer': "isr_ppp_2020_UNadj_constrainedfgb",
-                minzoom: 1,
-                maxzoom: 23,
-                'paint': {
-                    'fill-extrusion-color': [
-                        "step",
-                        ['to-number', ["get", "pop"]],
-                        "#0000FF",  // 10人未満
-                        10, "#00FFFF",  // 10人以上
-                        25, "#00FF00",  // 25人以上
-                        50, "#FFFF00",  // 50人以上
-                        100, "#FF7F00",  // 100人以上
-                        200, "#FF0000",  // 200人以上
-                        300, "#650065",  // 300人以上
-                    ],
-                    "fill-extrusion-opacity": 1.0,
-                    // "fill-extrusion-height": ['to-number', ["get", "pop"]]
-                    "fill-extrusion-height": [
-                        "*",
-                        ['to-number', ["get", "pop"]],
-                        10
-                    ]
-                }
-            });
+      // スライダーで建築物モデルの不透明度を制御
+      const modelsliderOpactiy = document.getElementById('model-slider-opacity');
+      const modelsliderOpactiyValue = document.getElementById('model-slider-opacity-value');
 
-            // パレスチナ人口メッシュソースを追加
-            map.addSource("palestine-pop", {
-                type: "vector",
-                url: "pmtiles://" + "https://xs489works.xsrv.jp/pmtiles-data/WorldPop/pse_ppp_2020_UNadj_constrained.pmtiles",
-                attribution: '<a href="https://www.worldpop.org/">WorldPop(2020)</a>'
-            });
+      modelsliderOpactiy.addEventListener('input', (e) => {
+        map.setPaintProperty(
+          'pmtiles-building',
+          'fill-extrusion-opacity',
+          parseInt(e.target.value, 10) / 100
+        );
+        modelsliderOpactiyValue.textContent = e.target.value + '%';
+      });
 
-            // パレスチナ人口メッシュレイヤの追加
-            map.addLayer({
-                'id': 'palestine-pop-polygon',
-                'type': 'fill-extrusion',
-                'source': 'palestine-pop',
-                'source-layer': "pse_ppp_2020_UNadj_constrainedfgb",
-                minzoom: 1,
-                maxzoom: 23,
-                'paint': {
-                    'fill-extrusion-color': [
-                        "step",
-                        ['to-number', ["get", "pop"]],
-                        "#0000FF",  // 10人未満
-                        10, "#00FFFF",  // 10人以上
-                        25, "#00FF00",  // 25人以上
-                        50, "#FFFF00",  // 50人以上
-                        100, "#FF7F00",  // 100人以上
-                        200, "#FF0000",  // 200人以上
-                        300, "#650065",  // 300人以上
-                    ],
-                    "fill-extrusion-opacity": 1.0,
-                    // "fill-extrusion-height": ['to-number', ["get", "pop"]]
-                    "fill-extrusion-height": [
-                        "*",
-                        ['to-number', ["get", "pop"]],
-                        10
-                    ]
-                }
-            });
-            */
+      // 行政界重心ソース
+      map.addSource('boundary-centroid', {
+        'type': 'geojson',
+        'data': './pse_admbnda_adm2_pamop_20210806_centroid.geojson',
+        attribution: '<a href="https://data.humdata.org/dataset/cod-ab-pse">OCHA</a>'
+      });
 
-            // 人口メッシュソースを追加
-            map.addSource("pmtiles-pop", {
-                type: "vector",
-                url: "pmtiles://" + "https://xs489works.xsrv.jp/pmtiles-data/EU-GHSL/GHS_POP_E2020_GLOBE_R2023A_4326_3ss_V1_0_R6_C22.pmtiles",
-                attribution: '<a href="https://ghsl.jrc.ec.europa.eu/">EU GHSL(Global Human Settlement Layer)</a>'
-            });
+      // 行政界ラベルレイヤ
+      map.addLayer({
+        'id': 'boundary-centroid-labels',
+        'type': 'symbol',
+        'source': 'boundary-centroid',
+        minzoom: 1,
+        maxzoom: 23,
+        'layout': {
+          'text-field': ['get', 'admin2Name_en'],
+          'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+          'text-size': 16,
+          'text-anchor': 'center',
+          'text-justify': 'center',
+          'text-offset': [0, -1.0],
+        },
+        'paint': {
+          'text-color': 'rgba(0, 0, 0, 1)',
+          'text-halo-color': 'rgba(255, 255, 255, 1)',
+          'text-halo-width': 2
+        }
+      });
 
-            // 人口メッシュレイヤの追加
-            map.addLayer({
-                'id': 'pmtiles-pop-polygon',
-                'type': 'fill-extrusion',
-                'source': 'pmtiles-pop',
-                'source-layer': "GHS_POP_E2020_GLOBE_R2023A_4326_3ss_V1_0_R6_C22fgb",
-                minzoom: 1,
-                maxzoom: 23,
-                'paint': {
-                    'fill-extrusion-color': [
-                        "step",
-                        ['to-number', ["get", "pop"]],
-                        "#0000FF",  // 10人未満
-                        10, "#00FFFF",  // 10人以上
-                        25, "#00FF00",  // 25人以上
-                        50, "#FFFF00",  // 50人以上
-                        100, "#FF7F00",  // 100人以上
-                        200, "#FF0000",  // 200人以上
-                        300, "#650065",  // 300人以上
-                    ],
-                    "fill-extrusion-opacity": 1.0,
-                    // "fill-extrusion-height": ['to-number', ["get", "pop"]]
-                    "fill-extrusion-height": [
-                        "*",
-                        ['to-number', ["get", "pop"]],
-                        15
-                    ]
-                }
-            });
-
-            // 行政界重心ソース
-            map.addSource('boundary-centroid', {
-                'type': 'geojson',
-                'data': './pse_admbnda_adm2_pamop_20210806_centroid.geojson',
-                attribution: '<a href="https://data.humdata.org/dataset/cod-ab-pse">OCHA</a>'
-            });
-
-            // 行政界ラベルレイヤ
-            map.addLayer({
-                'id': 'boundary-centroid-labels',
-                'type': 'symbol',
-                'source': 'boundary-centroid',
-                minzoom: 1,
-                maxzoom: 23,
-                'layout': {
-                    'text-field': ['get', 'admin2Name_en'],
-                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-                    'text-size': 16,
-                    'text-anchor': 'center',
-                    'text-justify': 'center',
-                    'text-offset': [0, -1.0],
-                },
-                'paint': {
-                    'text-color': 'rgba(0, 0, 0, 1)',
-                    'text-halo-color': 'rgba(255, 255, 255, 1)',
-                    'text-halo-width': 2
-                }
-            });
-
-        });
-
-        // スライダーで人口メッシュの不透明度を制御
-        const MeshsliderOpactiy = document.getElementById('mesh-slider-opacity');
-        const MeshsliderOpactiyValue = document.getElementById('mesh-slider-opacity-value');
-
-        MeshsliderOpactiy.addEventListener('input', (e) => {
-            /*
-            map.setPaintProperty(
-                'israel-pop-polygon',
-                'fill-extrusion-opacity',
-                parseInt(e.target.value, 10) / 100
-            );
-            map.setPaintProperty(
-                'palestine-pop-polygon',
-                'fill-extrusion-opacity',
-                parseInt(e.target.value, 10) / 100
-            );
-            */
-            map.setPaintProperty(
-                'pmtiles-pop-polygon',
-                'fill-extrusion-opacity',
-                parseInt(e.target.value, 10) / 100
-            );
-            MeshsliderOpactiyValue.textContent = e.target.value + '%';
-        });
-
-        // スライダーで人口メッシュの不透明度を制御
-        const MagsliderOpactiy = document.getElementById('mag-slider-opacity');
-        const MagsliderOpactiyValue = document.getElementById('mag-slider-opacity-value');
-
-        MagsliderOpactiy.addEventListener('input', (e) => {
-            /*
-            map.setPaintProperty(
-                'israel-pop-polygon',
-                'fill-extrusion-height',
-                [
-                    "*",
-                    ['to-number', ["get", "pop"]],
-                    parseInt(e.target.value, 10)
-                ]
-            );
-            map.setPaintProperty(
-                'palestine-pop-polygon',
-                'fill-extrusion-height',
-                [
-                    "*",
-                    ['to-number', ["get", "pop"]],
-                    parseInt(e.target.value, 10)
-                ]
-            );
-            */
-            map.setPaintProperty(
-                'pmtiles-pop-polygon',
-                'fill-extrusion-height',
-                [
-                    "*",
-                    ['to-number', ["get", "pop"]],
-                    parseInt(e.target.value, 10)
-                ]
-            );
-            MagsliderOpactiyValue.textContent = e.target.value + '倍';
-        });
-
-    </script>
+    });
+  </script>
 </body>
 
 </html>
